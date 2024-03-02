@@ -43,12 +43,19 @@ export const useLastConnected = board => {
 }
 
 export const useConnectedDelta = board => {
+  const [seconds, setSeconds] = useState(Infinity);
+  useEffect(() => {
+    const interval = setInterval(() => {
+    const date = new Date();
+    const time = date.getTime() / 1000;
+    setSeconds(time);
+  }, 1000);
+
+  return () => clearInterval(interval);
+  }, []);
+
   const lastConnected = useLastConnected(board);
-  const now = new Date();
-  const epoch = now.getTime();
-  // if board did not ping for over 2 seconds,
-  // declare disconnected.
-  return epoch - lastConnected;
+  return seconds - lastConnected;
 }
 
 export const usePresses = board => {

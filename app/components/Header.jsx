@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import {useConnectedDelta} from "../firebase.js";
 
-const connectionDeltaToColor = delta => delta < 2 ? "green" : delta < 4 ? "yellow" : "red";
+const connectionDeltaToColor = delta => delta < 2 ? "green" : delta < 10 ? "yellow" : "red";
 
 const Header =({
 
