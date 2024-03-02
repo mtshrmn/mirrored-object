@@ -1,29 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import {react, useState, useEffect} from "react";
-import {boardTest} from "./firebase";
-import {onValue, ref} from "firebase/database";
-
 import { ImageBackground, ToastAndroid, Platform, Alert, StyleSheet, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import Header from './components/Header';
 import Body from './components/Body';
->>>>>>> master
 
 export default function App() {
-<<<<<<< HEAD
-  const presses = usePresses("board_test");
-||||||| 24db184
-  const [lastConnected, setLastConnected] = useState('-1');
-
-  useEffect(() => {
-    onValue(boardTest, (snapshot) => {
-    const epochMs = snapshot.val();
-        const humanDate = new Date(epochMs * 1000);
-        setLastConnected(humanDate.toString());
-    });
-  }, []);
-=======
   const [selectedTimeInterval, setSelectedTimeInterval] = useState(null);
   const [selectedGraphType, setSelectedGraphType] = useState('LineChart');
   const [buttonPressed, setButtonPressed] = useState(false);
@@ -83,21 +63,8 @@ export default function App() {
       return;
     }
   }
->>>>>>> master
 
   return (
-<<<<<<< HEAD
-    <View style={styles.container}>
-      <Text>total presses {JSON.stringify(presses)}</Text>
-      <StatusBar style="auto" />
-    </View>
-||||||| 24db184
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <Text>last: {lastConnected}</Text>
-      <StatusBar style="auto" />
-    </View>
-=======
         <View>
           <ImageBackground source={require('./assets/download.png')} style={styles.image}>
              <Header/>
@@ -106,29 +73,13 @@ export default function App() {
               buttonPressedHandler={buttonPressedHandler} graphType={graphType}/>
             </ImageBackground>
           </View>
->>>>>>> master
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center', },
-||||||| 24db184
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-=======
   image: {
     width: '100%',
     height: '100%',
     opacity: '0.7',
   },
->>>>>>> master
 });

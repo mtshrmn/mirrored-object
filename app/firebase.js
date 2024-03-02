@@ -42,13 +42,13 @@ export const useLastConnected = board => {
   return lastConnected;
 }
 
-export const useIsConnected = board => {
+export const useConnectedDelta = board => {
   const lastConnected = useLastConnected(board);
   const now = new Date();
   const epoch = now.getTime();
   // if board did not ping for over 2 seconds,
   // declare disconnected.
-  return epoch - lastConnected < 2;
+  return epoch - lastConnected;
 }
 
 export const usePresses = board => {
