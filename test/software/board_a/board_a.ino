@@ -42,13 +42,14 @@ char buff[40];
 
 
 //----------------------- Get the current time--------------------------------
-char *getTime() { //get the current time
+unsigned int getTime() { //get the current time
   struct tm timeinfo;
+  time_t now;
   if (!getLocalTime(&timeinfo)) {
-    return "err";
+    return 0;
   }
-  strftime(buff, 39, "%d-%B-%Y,%H:%M:%S", &timeinfo);
-  return buff;
+  time(&now);
+  return now;
 }
 
 
@@ -143,7 +144,7 @@ void buttonWasPressed()
 
 //-------------------------- Check if the second board is connected ----------------------
 bool isBoardBConnected(){
-    if (Firebase.RTDB.getString(&fbdo, "board_b/last_connected")) {
+   /* if (Firebase.RTDB.getString(&fbdo, "board_b/last_connected")) {
         String time = fbdo.to<String>();
         String curTime = getTime();
         if (time.equals("err")||curTime.equals("err"))
@@ -170,7 +171,17 @@ bool isBoardBConnected(){
           return true;
         }
         return false;
-    } else {
+    } */
+     if (Firebase.RTDB.getInt(&fbdo, "board_b/last_connected")) {
+        int time = fbdo.to<int>();
+        int curTime = getTime();
+        if (time == 0 || curTime == 0) {
+          return false;
+        }
+
+        return curTime - time < 15;
+     }
+    else {
         Serial.println("error getting last connection of other board");
         return false;
       }
@@ -201,7 +212,7 @@ void loop() {
 
       isBConnected=isBoardBConnected();
 
-      if (Firebase.RTDB.setString(&fbdo, "board_a/last_connected", getTime())) {
+      if (Firebase.RTDB.setInt(&fbdo, "board_a/last_connected", getTime())) {
         // do nothing
       } else {
         Serial.println("error setting local radius");
