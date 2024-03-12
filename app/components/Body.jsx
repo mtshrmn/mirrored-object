@@ -4,27 +4,46 @@ import Button from './Button';
 import React, { useEffect, useState } from 'react';
 import Graph from './Graph';
 import RadioButtonGroup from './RadioButtonGroup';
+import { getPresses } from '../firebase';
+import { set } from 'firebase/database';
 
 const Body = ({
-  selectedTimeIntervalHandler,
-  menuTimes,
   selectedGraphType,
   selectedGraphTypeHandler,
   buttonPressedHandler,
   graphType,
+  generate,
+  setSelectedBoard,
 }) => {
+  const [presses, setPresses] = useState({});
+  const [board, setBoard] = useState('board_a');
+
+  useEffect(() => {
+    getPresses(board, setPresses);
+  }, [generate,board]);
+
+  const boardMenu = [{label: 'board a', value: 'board_a'}, {label: 'board b', value: 'board_b'}];
+
+  const selectedBoardHandler = (item) => {
+    setBoard(item);
+    setSelectedBoard(item);
+    if (Object.keys(presses).length==0) {
+      return;
+    }
+  };
+
 
   return(
     <View style={styles.body}>
       <View style={{flex:1}}> 
-        <Menu onChangeSelectedItem = {selectedTimeIntervalHandler} menuItems={menuTimes}/>
+        <Menu onChangeSelectedItem = {selectedBoardHandler} menuItems={boardMenu}/>
         <RadioButtonGroup selectedGraphType={selectedGraphType} onChangeSelectedItem={selectedGraphTypeHandler}/>
       </View>
       <View style={{flex:1}}>     
         <Button title ='Generate!' onClick={()=>buttonPressedHandler()}/> 
       </View>
       <View style={{flex:4}}>
-        <Graph data={[{x:1,y:2},{x:2,y:4},{x:3,y:5},{x:4,y:2},{x:5,y:16},{x:6,y:3},{x:7,y:8},{x:8,y:8},]} type={graphType}/>
+        <Graph data={presses} type={graphType}/>
       </View>
     </View>
   )

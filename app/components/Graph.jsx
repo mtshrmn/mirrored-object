@@ -13,24 +13,57 @@ import { Text, View, StyleSheet, Dimensions } from 'react-native';
 
 }) => {
   const [graphType, setGraphType] = useState('LineChart');
-  const [labels, setLabels] = useState(Array.apply(null, Array(6)).map(function (x,i) {return i}));
+  const [labels, setLabels] = useState([]);
+  const [dataset, setDataset] = useState([]);
+
   useEffect(() => {
     setGraphType(type);
-    initiateLabelData();
-    //need to add checks and data about pie charts and progress charts
-
-  }, [type]);
-
-  const initiateLabelData = () => {
-    const start = data[0].x;
-    const end = data[data.length - 1].x;
-    const delta = (end - start) / 6;
-    const newLabels = Array.apply(null, Array(6)).map(function (x,i) {return i});
-    for (let i = 0; i < 6; i++) {
-      newLabels[i] = Math.round(start + i * delta);
+    if (Object.keys(data).length) {
+      initiateDataAndLabels();
     }
+  }, [type, data]);
+
+  const generateEquallySpacedLabels = (startTime, endTime, numberOfLabels) => {
+    const totalRange = endTime - startTime;
+    const interval = totalRange / (numberOfLabels - 1);
+
+    let labels = [];
+    for (let i = 0; i < numberOfLabels; i++) {
+      const timestamp = new Date((startTime + i * interval) * 1000);
+      labels.push(`${timestamp.getHours()}:${timestamp.getMinutes() < 10 ? '0' + timestamp.getMinutes() : timestamp.getMinutes()}`);
+    }
+    return labels;
+  };
+
+  const interpolateMissingData = (sortedEpochTimes, data) => {
+    const intervalInSeconds = (sortedEpochTimes[sortedEpochTimes.length - 1] - sortedEpochTimes[0]) / (5);
+    let newData = [];
+    let previousValue = data[sortedEpochTimes[0]];
+
+    sortedEpochTimes.forEach((time, index) => {
+      if (index > 0) {
+        let gap = time - sortedEpochTimes[index - 1];
+        let steps = gap / intervalInSeconds;
+        for (let step = 1; step < steps; step++) {
+          newData.push(previousValue); // Push the same value to indicate no change
+        }
+      }
+      newData.push(data[time]);
+      previousValue = data[time];
+    });
+
+    return newData;
+  };
+
+  function initiateDataAndLabels() {
+    const sortedEpochTimes = Object.keys(data).map(Number).sort((a, b) => a - b);
+
+    const newLabels = generateEquallySpacedLabels(sortedEpochTimes[0], sortedEpochTimes[sortedEpochTimes.length - 1], 6);
+    const interpolatedData = interpolateMissingData(sortedEpochTimes, data);
+
     setLabels(newLabels);
-  }
+    setDataset(interpolatedData);
+  };
 
   const chartProps = {
     width: (Dimensions.get("window").width) * 19 / 20,
@@ -57,7 +90,7 @@ import { Text, View, StyleSheet, Dimensions } from 'react-native';
     const commonData = {
       labels,
       datasets: [{
-        data: data.map((item) => item.y)
+        data: dataset
       }]
     };
 

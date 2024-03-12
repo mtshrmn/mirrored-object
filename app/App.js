@@ -4,21 +4,22 @@ import Header from './components/Header';
 import Body from './components/Body';
 
 export default function App() {
-  const [selectedTimeInterval, setSelectedTimeInterval] = useState(null);
   const [selectedGraphType, setSelectedGraphType] = useState('LineChart');
   const [buttonPressed, setButtonPressed] = useState(false);
   const [renderGraph, setRenderGraph] = useState(false);
   const[graphType, setGraphType] = useState(null);
-
+  const [generate, setGenerate] = useState(false);
+  const [selectedBoard, setSelectedBoard] = useState(null);
+ 
   useEffect(() => {
     if(buttonPressed){
-      if (!(selectedTimeInterval)) {
-        notifyMessage('No graph time interval selected');
+      if (!(selectedBoard)) {
+        notifyMessage('No board selected');
         setButtonPressed(false);
         return;
       }
       renderNewGraph();
-      console.log('Button pressed and the selected item is:', selectedTimeInterval);
+      console.log('Button pressed and the selected item is:', selectedBoard);
       setButtonPressed(false);
     };
   }, [buttonPressed]);
@@ -27,8 +28,6 @@ export default function App() {
     setGraphType(selectedGraphType);
   }, [renderGraph]);
 
-  const menuTimes = [{label: 'hourly', value: 'hourly'}, {label: 'daily', value: 'daily'},
-  {label: 'Monthly', value: 'Monthly'}, {label: 'Yearly', value: 'Yearly'}];
 
   const notifyMessage = (msg) => {
     if (Platform.OS === 'android') {
@@ -38,9 +37,7 @@ export default function App() {
     }
   }
 
-  const selectedTimeIntervalHandler = (item) => {
-    setSelectedTimeInterval(item);
-  };
+
 
   const selectedGraphTypeHandler = (item) => {
     if (item == 'ProgressChart' || item == 'PieChart') {
@@ -59,7 +56,8 @@ export default function App() {
 
   const buttonPressedHandler = () => {
     setButtonPressed(true);
-    if (!selectedTimeInterval) {
+    setGenerate((generate)=>!generate);
+    if (!selectedBoard) {
       return;
     }
   }
@@ -68,9 +66,8 @@ export default function App() {
         <View>
           <ImageBackground source={require('./assets/download.png')} style={styles.image}>
              <Header/>
-             <Body selectedTimeIntervalHandler={selectedTimeIntervalHandler} menuTimes={menuTimes}
-              selectedGraphType={selectedGraphType} selectedGraphTypeHandler={selectedGraphTypeHandler}
-              buttonPressedHandler={buttonPressedHandler} graphType={graphType}/>
+             <Body selectedGraphType={selectedGraphType} selectedGraphTypeHandler={selectedGraphTypeHandler}
+              buttonPressedHandler={buttonPressedHandler} graphType={graphType} generate={generate} setSelectedBoard={setSelectedBoard}/>
             </ImageBackground>
           </View>
   );

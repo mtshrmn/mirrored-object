@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import { getApps, initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue } from 'firebase/database'
+import { getDatabase, ref, onValue, get } from 'firebase/database'
 
 const firebaseConfig = {
   apiKey: "AIzaSyABl_UJRO3JkxAhHKfxys7xxDQHMSz4exg",
@@ -58,16 +58,23 @@ export const useConnectedDelta = board => {
   return seconds - lastConnected;
 }
 
-export const usePresses = board => {
-  const [presses, setPresses] = useState({});
-  const boardRef = ref(database, board + "/presses");
-  useEffect(() => {
-    onValue(boardRef, snapshot => {
-      snapshot.forEach(child => {
-        setPresses(old => ({...old, [child.key]: child.val()}));
-      });
-    });
-  }, []);
-  return presses;
+export const getPresses = async (board, setter) => {
+    const boardRef = ref(database, board + "/presses");
+    let presses = {};
+    await get(boardRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        // Optional: Log each child if needed
+        snapshot.forEach((child) => {
+          presses[child.child('timeStamp').val()] = child.child('pressesCount').val();
+        });
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error("Error getting data:", error);
+    }); // Runs once if 'board' doesn't change
+
+  setter(presses);
 }
+
 
