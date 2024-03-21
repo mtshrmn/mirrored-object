@@ -25,13 +25,11 @@
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
 FirebaseData fbdo;
-FirebaseData stream;
+FirebaseData streamConnection;
+FirebaseData streamPresses;
 FirebaseAuth auth;
 FirebaseConfig config;
 FirebaseJson timeAndPresses;
-String otherBoardPath = "/board_b";
-String otherLastConnectedPath = "/last_connected";
-String otherTotalPressesPath = "/total_presses";
 
 unsigned long sendDataPrevMillis = 0; // used
 int radius = 0; // used
@@ -45,24 +43,21 @@ bool signupOK = false;
 
 
 //----------------------------Functions for stream-----------------------------------
-void streamCallback(MultiPathStream stream) {
-  if (stream.get(otherLastConnectedPath)) {
-    lastConnectedTimeB = atoi(stream.value.c_str());
-  }
+void streamCallbackConnection(FirebaseStream data)
+{
+  lastConnectedTimeB=data.intData();
+  Serial.println(lastConnectedTimeB);
+}
 
-  if (stream.get(otherTotalPressesPath)) {
-    remoteRadius = atoi(stream.value.c_str());
-  }
+void streamCallbackPresses(FirebaseStream data)
+{
+  remoteRadius=data.intData();
+  Serial.println(remoteRadius);
 }
 
 void streamTimeoutCallback(bool timeout) {
   if(timeout) {
     Serial.println("stream timed out, resuming...");
-    return;
-  }
-
-  if (!stream.httpConnected()) {
-    Serial.printf("error code: %d, reason: %s\n", stream.httpCode(), stream.errorReason().c_str());
     return;
   }
 }
@@ -107,6 +102,10 @@ void init_wifi() {  //connect to Wifi
 
 //------------------------ Set Connection To FireBase-----------------------------
 void init_firebase() {  // connect to firebase
+  u8g2.clearBuffer();
+  u8g2.drawStr(0, 20, "init fb...");
+  u8g2.sendBuffer();
+
   config.api_key = API_KEY;
   config.database_url = DB_URL;
 
@@ -121,11 +120,18 @@ void init_firebase() {  // connect to firebase
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
 
-  if (!Firebase.RTDB.beginMultiPathStream(&stream, otherBoardPath)) {
-    Serial.printf("stream begin error, %s\n", stream.errorReason().c_str());
-  } else {
-    Firebase.RTDB.setMultiPathStreamCallback(&stream, streamCallback, streamTimeoutCallback);
+  if (!Firebase.RTDB.beginStream(&streamConnection, "/board_b/last_connected"))
+    Serial.printf("stream begin error, %s\n\n", streamConnection.errorReason().c_str());
+  else {
   }
+  Firebase.RTDB.setStreamCallback(&streamConnection, streamCallbackConnection, streamTimeoutCallback);
+
+  if (!Firebase.RTDB.beginStream(&streamPresses, "/board_b/total_presses"))
+    Serial.printf("stream begin error, %s\n\n", streamPresses.errorReason().c_str());
+  else {
+  }
+  Firebase.RTDB.setStreamCallback(&streamPresses, streamCallbackPresses, streamTimeoutCallback);
+
 }
 
 
@@ -205,10 +211,8 @@ void setup() {
 void loop() {
     // firebase synchronization
     if (Firebase.ready() && signupOK && millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0){
-      Serial.println("attempting to send data");
       sendDataPrevMillis = millis();
       if (Firebase.RTDB.setInt(&fbdo, "board_a/last_connected", getTime())) {
-        Serial.println("sent data successfully");
       } else {
         Serial.println("error setting local last_connected");
       }
@@ -240,5 +244,3 @@ void loop() {
     
     u8g2.sendBuffer();
   }
-
-
