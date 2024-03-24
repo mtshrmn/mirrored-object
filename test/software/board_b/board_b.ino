@@ -1,5 +1,6 @@
 #include <U8g2lib.h>
 #include <WiFi.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Firebase_ESP_Client.h>
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
@@ -16,7 +17,7 @@
 
 /*=======================================================================================================
 
-                       PAY ATTANTION: THIS CODE BELONGS TO BOARD A!
+                       PAY ATTANTION: THIS CODE BELONGS TO BOARD B!
 
 =========================================================================================================*/
 
@@ -39,6 +40,9 @@ int buttonState = 0; // used
 bool isPressed = false; // used
 int lastConnectedTimeA = 0; // used
 bool signupOK = false;
+
+WiFiManager wifiManager;
+bool res;//use for wifi
 
 
 
@@ -86,17 +90,18 @@ void init_wifi() {  //connect to Wifi
   u8g2.drawStr(0, 20, "init wifi...");
   u8g2.sendBuffer();
 
-  WiFi.begin(SSID, PSK);
-  delay(1000);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED){
-    Serial.print(".");
-    delay(300);
-  }
-  Serial.print("Connected with IP: ");
-  Serial.println();
-  Serial.println(WiFi.localIP());
-  Serial.println();
+  wifiManager.resetSettings();
+  res = wifiManager.autoConnect("ConfigBoardB","password");
+  if(!res) {
+          Serial.println("Failed to connect");
+          // ESP.restart();
+      } 
+      else {
+          //if you get here you have connected to the WiFi    
+          u8g2.clearBuffer();
+          u8g2.drawStr(0, 40, "connected:)");
+          u8g2.sendBuffer();
+      }
 }
 
 
@@ -233,6 +238,12 @@ void loop() {
     u8g2.clearBuffer();
     if (WiFi.status() != WL_CONNECTED) {
       u8g2.drawStr(0, 20, "wifi error");
+      u8g2.sendBuffer();
+      res = wifiManager.autoConnect("ConfigBoardB","password"); // This will open the configuration portal if not able to reconnect.
+      if(res){
+        u8g2.clearBuffer();
+        u8g2.drawStr(0, 40, "connected");
+      }
     } else {
       if (!Firebase.ready()) {
         u8g2.drawStr(0, 40, "fb error");
