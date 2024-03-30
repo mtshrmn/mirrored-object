@@ -1,6 +1,7 @@
 import {useState, useEffect} from "react";
 import { getApps, initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, get } from 'firebase/database'
+import { getDatabase, ref, onValue, query, onChildAdded, get, startAt } from 'firebase/database'
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyABl_UJRO3JkxAhHKfxys7xxDQHMSz4exg",
@@ -30,17 +31,41 @@ export const useTotalPresses = board => {
 }
 
 // in epoch time
-export const useLastConnected = board => {
+export const useLastConnected = (cube) => {
   const [lastConnected, setLastConnected] = useState(0);
-  const boardRef = ref(database, board + "/last_connected");
+  // Assuming 'cube' is the cube identifier like 'cube_a'
+  const boardRef = ref(database, `${cube}/last_connected`);
+
   useEffect(() => {
-    onValue(boardRef, snapshot => {
+    const unsubscribe = onValue(boardRef, (snapshot) => {
       const epoch = snapshot.val();
       setLastConnected(epoch);
-    })
-  }, []);
+    });
+
+    return () => unsubscribe();
+  }, [cube]);
+
   return lastConnected;
-}
+};
+
+export const useCurrentState = (cube) => {
+  const [currentState, setCurrentState] = useState('');
+
+  const stateRef = ref(database, `${cube}/state`);
+
+  useEffect(() => {
+    const unsubscribe = onValue(stateRef, (snapshot) => {
+      const state = snapshot.val();
+      setCurrentState(state); // Assuming the state is directly the value you need
+    });
+
+    return () => unsubscribe();
+  }, [cube]);
+
+  return currentState;
+};
+
+
 
 export const useConnectedDelta = board => {
   const [seconds, setSeconds] = useState(Infinity);
@@ -76,5 +101,37 @@ export const getPresses = async (board, setter) => {
 
   setter(presses);
 }
+
+export const useHistory = board => {
+  const [initialLastKey, setInitialLastKey] = useState(null);
+  const [history, setHistory] = useState({});
+  
+  const boardRef = ref(database, board + "/state_and_time");
+  useEffect(() => {
+    if (initialLastKey === null) {
+      get(boardRef).then(snapshot => {
+        const data = snapshot.toJSON();
+        const values = Object.values(data);
+        const keys = Object.keys(data);
+        setHistory(
+          Object.fromEntries(
+            values.map(
+              child => [child["timeStamp"], child["state"]]
+        )));
+        setInitialLastKey(keys[keys.length - 1]);
+      }).catch(error => {
+          console.error(`error fetching data from board '${board}'`)
+        });
+      return () => {};
+    }    
+
+    const newBoardRef = query(boardRef, startAt(initialLastKey));
+    return onChildAdded(newBoardRef, snapshot => {
+      setHistory(oldHistory => ({...oldHistory, [snapshot.child("timeStamp").val()]: snapshot.child("state").val()}));
+    });
+  }, [initialLastKey]);
+
+  return history;
+};
 
 

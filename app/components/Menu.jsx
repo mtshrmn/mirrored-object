@@ -4,7 +4,6 @@ import RNPickerSelect from 'react-native-picker-select';
 
 const Menu = ({
   onChangeSelectedItem,
-  menuItems,
   }
 ) => {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -13,6 +12,8 @@ const Menu = ({
     setSelectedItem(item);
     onChangeSelectedItem(item);
   };
+
+  const menuItems = [{label: 'line graph', value: 'line'}, {label: 'area graph', value: 'area'}, {label: 'bar graph', value: 'bar'}];
 
   return (
     <View style={styles.container}>

@@ -1,49 +1,34 @@
 import {StyleSheet, View } from 'react-native';
-import Menu from './Menu';
-import Button from './Button';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Graph from './Graph';
 import RadioButtonGroup from './RadioButtonGroup';
-import { getPresses } from '../firebase';
-import { set } from 'firebase/database';
+import Menu from './Menu';
+
 
 const Body = ({
-  selectedGraphType,
-  selectedGraphTypeHandler,
-  buttonPressedHandler,
-  graphType,
-  generate,
-  setSelectedBoard,
+  states,
 }) => {
-  const [presses, setPresses] = useState({});
-  const [board, setBoard] = useState('board_a');
+  const [cube, setCube] = useState('cube_a');
+  const [graphType, setGraphType] = useState('line');
 
-  useEffect(() => {
-    getPresses(board, setPresses);
-  }, [generate,board]);
-
-  const boardMenu = [{label: 'board a', value: 'board_a'}, {label: 'board b', value: 'board_b'}];
-
-  const selectedBoardHandler = (item) => {
-    setBoard(item);
-    setSelectedBoard(item);
-    if (Object.keys(presses).length==0) {
-      return;
-    }
+  const selectedCubeHandler = (item) => {
+    setCube(item);
   };
+  const selectedGraphTypeHandler = (item) => {
+    setGraphType(item);
+  }
 
 
   return(
     <View style={styles.body}>
       <View style={{flex:1}}> 
-        <Menu onChangeSelectedItem = {selectedBoardHandler} menuItems={boardMenu}/>
-        <RadioButtonGroup selectedGraphType={selectedGraphType} onChangeSelectedItem={selectedGraphTypeHandler}/>
+        <Menu onChangeSelectedItem={selectedGraphTypeHandler}/>
+        <RadioButtonGroup onChangeSelectedItem={selectedCubeHandler} selectedCubeType={cube} />
       </View>
       <View style={{flex:1}}>     
-        <Button title ='Generate!' onClick={()=>buttonPressedHandler()}/> 
       </View>
-      <View style={{flex:4}}>
-        <Graph data={presses} type={graphType}/>
+      <View style={{flex:9}}>
+        <Graph key={cube} states={states} cube={cube} graphType={graphType}/>
       </View>
     </View>
   )
