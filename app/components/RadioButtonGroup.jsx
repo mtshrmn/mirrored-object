@@ -4,23 +4,20 @@ import { RadioButton } from 'react-native-paper';
 
 const RadioButtonGroup = ({
   onChangeSelectedItem,
-  selectedGraphType,
+  selectedCubeType,
 }) => {
   const options = [
-    { value: 'LineChart', label: 'Line' },
-    { value: 'BarChart', label: 'Bar' },
-    { value: 'PieChart', label: 'Pie' },
-    { value: 'ProgressChart', label: 'Progress' },
+    { value: 'cube_a', label: 'Cube A' },
+    { value: 'cube_b', label: 'Cube B' },
   ];
-  // Define your options here 
 
   return (
     <View style={styles.container}>
       {options.map((option) => (
-        <View key={option.value} style={styles.radioButtonContainer}>
+        <View key={option.value} style={[styles.radioButtonContainer, option.value==='cube_b' ? styles.additionalPadding : {}]}>
           <RadioButton
             value={option.value}
-            status={selectedGraphType === option.value ? 'checked' : 'unchecked'}
+            status={selectedCubeType === option.value ? 'checked' : 'unchecked'}
             onPress={() => {
               onChangeSelectedItem(option.value)
             }}
@@ -48,5 +45,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     alignItems: 'center',
+  },
+  additionalPadding: {
+    paddingRight: 25,
   },
 });

@@ -1,129 +1,164 @@
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-} from "react-native-chart-kit";
-import React ,{ useEffect, useState } from "react";
-import { Text, View, StyleSheet, Dimensions } from 'react-native';
- //data will be an array, and in each object there will be x,y pair as such[{x1,y1},{x2,y2},{x:3,y:3}]
- const Graph = ({ 
-  data,
-  type,
+import React, {useEffect, useState} from "react";
+import { View, StyleSheet,Text } from 'react-native';
+import { useHistory } from "../firebase";
+import { VictoryAxis, VictoryArea, VictoryChart, VictoryTheme, VictoryZoomContainer, VictoryLabel, VictoryLine, VictoryBar, VictoryStep } from 'victory-native';
 
-}) => {
-  const [graphType, setGraphType] = useState('LineChart');
-  const [labels, setLabels] = useState([]);
-  const [dataset, setDataset] = useState([]);
+const Graph = ({ cube, states, graphType }) => {
+  const history = useHistory(cube);
+  const [graphData, setGraphData] = useState([]);
+  const [currentZoomDomain, setCurrentZoomDomain] = useState({x: [0,0]})
+  const [minTime, setMinTime] = useState(0);
+  const [maxTime, setMaxTime] = useState(0);
+
 
   useEffect(() => {
-    setGraphType(type);
-    if (Object.keys(data).length) {
-      initiateDataAndLabels();
-    }
-  }, [type, data]);
+    if (!history) return; // Exit if history or state_and_time is undefined
 
-  const generateEquallySpacedLabels = (startTime, endTime, numberOfLabels) => {
-    const totalRange = endTime - startTime;
-    const interval = totalRange / (numberOfLabels - 1);
+    // Simulate fetching 'history' and transforming it
+    const historyData = Object.entries(history).map(([key, val]) => ({
+      state: val,
+      timeStamp: parseInt(key),
+    }));
+    const timeValues = Object.keys(history).map(key => parseInt(key, 10)).filter(time => !isNaN(time) && time!==0);
+    const minTime = Math.min(...timeValues);
+    const maxTime = Math.max(...timeValues);
+    console.log(minTime, maxTime)
+    setMinTime(minTime);
+    setMaxTime(maxTime);
 
-    let labels = [];
-    for (let i = 0; i < numberOfLabels; i++) {
-      const timestamp = new Date((startTime + i * interval) * 1000);
-      labels.push(`${timestamp.getHours()}:${timestamp.getMinutes() < 10 ? '0' + timestamp.getMinutes() : timestamp.getMinutes()}`);
-    }
-    return labels;
+    const barData = aggregateStateOccurrences(historyData);
+  
+    setGraphData(barData); // Assuming you use `graphData` directly for the bar graph
+    setCurrentZoomDomain({ x: [minTime, maxTime] }); 
+  }, [cube, history]);
+  
+  
+  // Parses epoch time to a more readable format
+  const parseEpoch = epoch => {
+    const date = new Date(epoch * 1000);
+    // Format: "dd/mm | hr:min"
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} | ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  const interpolateMissingData = (sortedEpochTimes, data) => {
-    const intervalInSeconds = (sortedEpochTimes[sortedEpochTimes.length - 1] - sortedEpochTimes[0]) / (5);
-    let newData = [];
-    let previousValue = data[sortedEpochTimes[0]];
+  // Transforms history data into a suitable format for the graph
+  const data = Object.entries(history).map(([key, val]) => ({ "time": (key), "state": val }));
+  const aggregateStateOccurrences = (historyData) => {
+    const stateCounts = historyData.reduce((acc, { state }) => {
+      // Increment the count for this state
+      acc[state] = (acc[state] || 0) + 1;
+      return acc;
+    }, {});
+  
+    // Convert the aggregated data into an array suitable for VictoryBar
+    const barData = Object.entries(stateCounts).map(([state, count]) => ({
+      // Assuming `states` is an object mapping state IDs to labels
+      x: states[state] ? states[state] : `State ${state}`,
+      y: count,
+    }));
+  
+    return barData;
+  };
+  
+  // Defines a dictionary for state values
 
-    sortedEpochTimes.forEach((time, index) => {
-      if (index > 0) {
-        let gap = time - sortedEpochTimes[index - 1];
-        let steps = gap / intervalInSeconds;
-        for (let step = 1; step < steps; step++) {
-          newData.push(previousValue); // Push the same value to indicate no change
-        }
+  // Function to wrap text based on max characters per line
+  const wrapText = (text, maxChar) => {
+    if (typeof text !== 'string') {
+      return; 
+    }
+
+    let result = [];
+    let currentLine = [];
+
+    text.split(' ').forEach(word => {
+      if ((currentLine.join(' ') + word).length + 1 > maxChar) {
+        result.push(currentLine.join(' '));
+        currentLine = [word];
+      } else {
+        currentLine.push(word);
       }
-      newData.push(data[time]);
-      previousValue = data[time];
     });
 
-    return newData;
-  };
-
-  function initiateDataAndLabels() {
-    const sortedEpochTimes = Object.keys(data).map(Number).sort((a, b) => a - b);
-
-    const newLabels = generateEquallySpacedLabels(sortedEpochTimes[0], sortedEpochTimes[sortedEpochTimes.length - 1], 6);
-    const interpolatedData = interpolateMissingData(sortedEpochTimes, data);
-
-    setLabels(newLabels);
-    setDataset(interpolatedData);
-  };
-
-  const chartProps = {
-    width: (Dimensions.get("window").width) * 19 / 20,
-    height: 220,
-    chartConfig: {
-      backgroundColor: "#e26a00",
-      backgroundGradientFrom: "#fb8c00",
-      backgroundGradientTo: "#ffa726",
-      decimalPlaces: 2,
-      color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      style: {
-        borderRadius: 16
-      },
-    },
-    bezier: true,
-    style: {
-      marginVertical: 8,
-      borderRadius: 16
+    if (currentLine.length) {
+      result.push(currentLine.join(' '));
     }
-  };
 
-  const renderChart = () => {
-    const commonData = {
-      labels,
-      datasets: [{
-        data: dataset
-      }]
+    return result.join('\n'); // Join the lines with newline character
+  };
+  let GraphComponent;
+  switch (graphType) {
+    case 'line':
+      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} />;
+      break;
+    case 'area':
+      GraphComponent = <VictoryArea data={data} x="time" y="state" style={{ data: { fill: "green" } }} />;
+      break;
+      case 'bar':
+        GraphComponent = <VictoryBar data={graphData} style={{ data: { fill: "orange" } }} />;
+        break;
+    default:
+      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} />;
+  }
+  
+
+  let xAxisTickFormat;
+  let yAxisTickFormat;
+  if (graphType === 'bar') {
+    // For bar graphs, use the x values (state labels) directly
+    xAxisTickFormat = (x) => x;
+    yAxisTickFormat = (y) => y;
+  } else {
+    // For other graph types, adjust accordingly (e.g., parseEpoch for time-based graphs)
+    xAxisTickFormat = (t) => parseEpoch(t); //
+    yAxisTickFormat = (t) => wrapText(states[t], 10);
+  }
+
+  const handleZoomDomainChange = (newDomain) => {
+    const adjustedDomain = {
+      x: [
+        Math.max(newDomain.x[0], minTime),
+        newDomain.x[1] // Allows panning to the right without changing the max constraint here
+      ]
     };
-
-    switch (graphType) {
-      case 'LineChart':
-        return <LineChart {...chartProps} data={commonData} />;
-      case 'BarChart':
-        return <BarChart {...chartProps} data={commonData} />;
-      case 'PieChart':
-        // PieChart might require different data structure
-        return <PieChart {...chartProps} data={data} />;
-      case 'ProgressChart':
-        // ProgressChart might require different props
-        return <ProgressChart {...chartProps} data={data} />;
-      default:
-        return <LineChart {...chartProps} data={commonData} />;
-    }
+  
+    setCurrentZoomDomain(adjustedDomain);
   };
-
+  
   return (
-    <View>
-      {renderChart()}
-    </View>
+    data.length > 0 ? (
+      <View style={styles.container}>
+        <VictoryChart theme={VictoryTheme.material} onZoomDomainChange={handleZoomDomainChange} zoomDomain={currentZoomDomain}
+         domainPadding={10} containerComponent={<VictoryZoomContainer minimumZoom={{x:5}} zoomDimension="x" />} 
+         padding={{ left: 80, top: 5, right: 30, bottom: 90 }}>
+          <VictoryAxis tickFormat={xAxisTickFormat} fixLabelOverlap={true} style={{ tickLabels: { fill: "white", fontSize: 12, padding: 5 }}} tickLabelComponent={
+              <VictoryLabel
+                angle={-45}
+                textAnchor="end"
+                verticalAnchor="middle"
+                dx={-10}
+                dy={10} // Adjustments to position the label correctly
+              />
+            }/>
+          <VictoryAxis dependentAxis tickFormat={yAxisTickFormat} tickLabelComponent={<VictoryLabel dx={-5} textAnchor="end" />} style={{ tickLabels: { fill: "white", fontSize: 12, fontWeight: 'bold', padding: 5 }}}/>
+          {GraphComponent}
+        </VictoryChart>
+      </View>
+    ) : (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{color: 'white'}}>Fetching the data...</Text>
+      </View>
+    )
   );
-};
+  
+}
 
 export default Graph;
 
 const styles = StyleSheet.create({
-  text: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
