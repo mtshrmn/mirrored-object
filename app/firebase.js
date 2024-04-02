@@ -1,6 +1,6 @@
 import {useState, useEffect} from "react";
 import { getApps, initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, query, onChildAdded, get, startAt } from 'firebase/database'
+import { getDatabase, ref, onValue, query, onChildAdded, get, startAt, orderByChild } from 'firebase/database'
 
 
 const firebaseConfig = {
@@ -113,11 +113,20 @@ export const useHistory = board => {
         const data = snapshot.toJSON();
         const values = Object.values(data);
         const keys = Object.keys(data);
-        setHistory(
-          Object.fromEntries(
+        const historyData = Object.fromEntries(
             values.map(
-              child => [child["timeStamp"], child["state"]]
-        )));
+              child => {
+                if (child["state"] === 5) {
+                  return [child["timeStamp"], 2];
+                }
+                if (child["state"] === 6) {
+                  return [child["timeStamp"], 4];
+                }
+                return [child["timeStamp"], child["state"]];
+              }
+        ));
+        delete historyData["0"];
+        setHistory(historyData);
         setInitialLastKey(keys[keys.length - 1]);
       }).catch(error => {
           console.error(`error fetching data from board '${board}'`)

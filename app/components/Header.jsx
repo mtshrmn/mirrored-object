@@ -33,6 +33,12 @@ const Header = ({
   const statusA = connectionDeltaToColor(deltaA);
   const statusB = connectionDeltaToColor(deltaB);
 
+  const parseEpoch = epoch => {
+    const date = new Date(epoch * 1000);
+    // Format: "dd/mm | hr:min"
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')} | ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
+
   return (
     <View style={styles.head}>
       <View style={{ flexDirection: 'row' }}>
@@ -42,6 +48,7 @@ const Header = ({
           <View style={{ flex: textContainerFlexRatio, justifyContent: 'center', flexDirection: 'column' }}>
             <Text style={styles.text}>cube a</Text>
             {statusA !== "red" && <Text style={styles.state_text}>{states[currentStateA]}</Text>}
+            {statusA === "red" && <Text style={styles.state_text}>since: {parseEpoch(lastConnectedA)}</Text>}
           </View>
         </View>
         {/* Cube B */}
@@ -50,6 +57,7 @@ const Header = ({
           <View style={{ flex: textContainerFlexRatio, justifyContent: 'center', flexDirection: 'column' }}>
             <Text style={styles.text}>cube b</Text>
             {statusB !== "red" && <Text style={styles.state_text}>{states[currentStateB]}</Text>}
+            {statusB === "red" && <Text style={styles.state_text}>since: {parseEpoch(lastConnectedB)}</Text>}
           </View>
         </View>
       </View>

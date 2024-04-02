@@ -9,6 +9,9 @@ const Menu = ({
   const [selectedItem, setSelectedItem] = useState(null);
 
   const handleItemClick = (item) => {
+    if (item == null){
+      return;
+    }
     setSelectedItem(item);
     onChangeSelectedItem(item);
   };

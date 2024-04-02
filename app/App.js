@@ -16,11 +16,11 @@ export default function App() {
 
   const states = {
     1: 'available',
-    2: 'not defined',
+    2: 'on a break',
     3: 'emergency only',
-    4: 'not defined',
-    5: 'on a break',
-    6: 'in a meeting',
+    4: 'in a meeting',
+    // 5: 'on a break',
+    // 6: 'in a meeting',
   };
 
   return (
