@@ -50,6 +50,10 @@ bool signupOK = false;
 
 WiFiManager wifiManager;
 bool res;//use for wifi
+bool updateUponConnection=false;
+
+bool reconnect=false;
+unsigned long firstTryReconnect;
 
 
 
@@ -108,8 +112,8 @@ void init_wifi() {  //connect to Wifi
   Serial.println("wifi");
   write_to_display("init Wifi",1);
 
-  wifiManager.resetSettings();
-  res = wifiManager.autoConnect("ConfigCubeB","password");
+  //wifiManager.resetSettings();
+  res = wifiManager.autoConnect("ConfigCubeB");
   if(!res) {
           Serial.println("Failed to connect");
           // ESP.restart();
@@ -175,6 +179,11 @@ void init_state(){
         Serial.println("error reading state");
       }
   }
+   /*sensors_event_t a,g,temp;
+    mpu.getEvent(&a,&g,&temp);
+    // Update the orientation manager with the latest data
+    orientationManager.update(a);
+    state = orientationManager.get_stable_state();*/
 }
 
 
@@ -270,14 +279,6 @@ void setup() {
 
 //=========================== THE CODE THAT WILL BE EXXECUTED IN LOOPS  =============================
 void loop() {
-    // firebase synchronization
-    if (Firebase.ready() && signupOK && millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0){
-      sendDataPrevMillis = millis();
-      if (Firebase.RTDB.setInt(&fbdo, "cube_b/last_connected", getTime())) {
-      } else {
-        Serial.println("error setting local last_connected");
-      }
-    }
 
     sensors_event_t a,g,temp;
     mpu.getEvent(&a,&g,&temp);
@@ -285,45 +286,73 @@ void loop() {
     orientationManager.update(a);
 
     // Check if the orientation has been stable for 3 seconds and update display
-    if(orientationManager.checkStabilityAndUpdate()){
+    if(orientationManager.checkStabilityAndUpdate()||updateUponConnection){
 
       if(orientationManager.get_stable_state()!=2&&orientationManager.get_stable_state()!=4){
-
         state = orientationManager.get_stable_state();
-        if (Firebase.RTDB.setInt(&fbdo, "cube_b/state", state)) {
+        if (Firebase.ready()){
+          if (Firebase.RTDB.setInt(&fbdo, "cube_b/state", state)) {
         // do nothing
-        } else {
-          Serial.println("error setting local state");
-        }
-        
-        timeAndState.set("state", state);
-        timeAndState.set("timeStamp", getTime());
-
-        if (Firebase.RTDB.pushJSON(&fbdo, "/cube_b/state_and_time", &timeAndState)) {
-            // do nothing
           } else {
-            Serial.println("error pushing time with state");
+            Serial.println("error setting local state");
           }
-          timeAndState.clear();
+          
+          timeAndState.set("state", state);
+          timeAndState.set("timeStamp", getTime());
+
+          if (Firebase.RTDB.pushJSON(&fbdo, "/cube_b/state_and_time", &timeAndState)) {
+              // do nothing
+            } else {
+              Serial.println("error pushing time with state");
+            }
+            timeAndState.clear();
+          }
+          if(WiFi.status()!= WL_CONNECTED){
+            updateUponConnection=true;
+          }
+          else{
+            updateUponConnection=false;
+          }
         }
     }
 
-
-    if (WiFi.status() != WL_CONNECTED) {
-        write_to_display("Wifi  Error", state);
+    
+      if (WiFi.status() != WL_CONNECTED) {
+        write_to_display("Wifi  Error:  searching...", state);
         display_led(1);
-      res = wifiManager.autoConnect("ConfigCubeB","password"); // This will open the configuration portal if not able to reconnect.
+        if(reconnect==false){
+          firstTryReconnect=millis();
+          reconnect=true;
+        }
+        if(millis()-firstTryReconnect>15000){
+          write_to_display("Wifi  Error:   reconnect.", state);
+          res = wifiManager.autoConnect("ConfigCubeB"); // This will open the configuration portal if not able to reconnect.
+          if(res){
+            reconnect=false;
+          }
+        }
+        
+     
     } else {
       if (!Firebase.ready()) {
           write_to_display("Fb error",state);
           display_led(1);
-      }else if(!isBoardAConnected()){
+      }else {
+        if(!isBoardAConnected()){
           write_to_display("  A is offline",state);
           display_led(2);
-      }
-       else {
-        display_animation(remoteState,state);
-        display_led(3);
-      }    
+        } else {
+          display_animation(remoteState,state);
+          display_led(3);
+        }
+            // firebase synchronization
+        if (Firebase.ready() && millis() - sendDataPrevMillis > 1000 || sendDataPrevMillis == 0){
+          sendDataPrevMillis = millis();
+          if (Firebase.RTDB.setInt(&fbdo, "cube_b/last_connected", getTime())) {
+          } else {
+            Serial.println("error setting local last_connected");
+          }
+        } 
+      }   
     }
   }
