@@ -41,7 +41,7 @@ const Graph = ({ cube, states, graphType }) => {
   };
 
   // Transforms history data into a suitable format for the graph
-  const data = Object.entries(history).map(([key, val]) => ({ "time": (key), "state": val }));
+  const data = Object.entries(history).map(([key, val]) => ({ "time": parseInt(key), "state": val }));
   const aggregateStateOccurrences = (historyData) => {
     const stateCounts = historyData.reduce((acc, { state }) => {
       // Increment the count for this state
@@ -88,16 +88,16 @@ const Graph = ({ cube, states, graphType }) => {
   let GraphComponent;
   switch (graphType) {
     case 'line':
-      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} />;
+      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} interpolation="stepAfter" />;
       break;
     case 'area':
-      GraphComponent = <VictoryArea data={data} x="time" y="state" style={{ data: { fill: "green" } }} />;
+      GraphComponent = <VictoryArea data={data} x="time" y="state" style={{ data: { fill: "green" } }} interpolation="stepAfter" />;
       break;
       case 'bar':
         GraphComponent = <VictoryBar data={graphData} style={{ data: { fill: "orange" } }} />;
         break;
     default:
-      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} />;
+      GraphComponent = <VictoryLine data={data} x="time" y="state" style={{ data: { stroke: "#43A6C6" } }} interpolation="stepAfter" />;
   }
   
 
@@ -123,12 +123,16 @@ const Graph = ({ cube, states, graphType }) => {
   
     setCurrentZoomDomain(adjustedDomain);
   };
+
+  const container = graphType !== "bar" ? {
+    containerComponent: <VictoryZoomContainer minimumZoom={{x:5}} zoomDimension="x" />,
+  } : {};
   
   return (
     data.length > 0 ? (
       <View style={styles.container}>
         <VictoryChart theme={VictoryTheme.material} onZoomDomainChange={handleZoomDomainChange} zoomDomain={currentZoomDomain}
-         domainPadding={10} containerComponent={<VictoryZoomContainer minimumZoom={{x:5}} zoomDimension="x" />} 
+         domainPadding={10} {...container}
          padding={{ left: 80, top: 5, right: 30, bottom: 90 }}>
           <VictoryAxis tickFormat={xAxisTickFormat} fixLabelOverlap={true} style={{ tickLabels: { fill: "white", fontSize: 12, padding: 5 }}} tickLabelComponent={
               <VictoryLabel

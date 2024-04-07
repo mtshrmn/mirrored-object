@@ -56,7 +56,13 @@ export const useCurrentState = (cube) => {
   useEffect(() => {
     const unsubscribe = onValue(stateRef, (snapshot) => {
       const state = snapshot.val();
-      setCurrentState(state); // Assuming the state is directly the value you need
+      if (state  === 5) {
+        setCurrentState(2);
+      } else if (state === 6){
+        setCurrentState(4);
+      } else {
+        setCurrentState(state); // Assuming the state is directly the value you need
+      }
     });
 
     return () => unsubscribe();
@@ -105,9 +111,11 @@ export const getPresses = async (board, setter) => {
 export const useHistory = board => {
   const [initialLastKey, setInitialLastKey] = useState(null);
   const [history, setHistory] = useState({});
+  const [shouldUpdateHistory, setShouldUpdateHistory] = useState(false);
   
-  const boardRef = ref(database, board + "/state_and_time");
+  const boardRef = query(ref(database, board + "/state_and_time"), orderByChild("timeStamp"));
   useEffect(() => {
+    console.log(initialLastKey);
     if (initialLastKey === null) {
       get(boardRef).then(snapshot => {
         const data = snapshot.toJSON();
@@ -127,16 +135,24 @@ export const useHistory = board => {
         ));
         delete historyData["0"];
         setHistory(historyData);
-        setInitialLastKey(keys[keys.length - 1]);
+        console.log("setting initial time" + values[values.length - 1]["timeStamp"]);
+        setInitialLastKey(parseInt(values[values.length - 1]["timeStamp"]));
       }).catch(error => {
-          console.error(`error fetching data from board '${board}'`)
+          console.error(`${board}: error fetching database, reason "${error}"`)
         });
       return () => {};
     }    
 
-    const newBoardRef = query(boardRef, startAt(initialLastKey));
-    return onChildAdded(newBoardRef, snapshot => {
-      setHistory(oldHistory => ({...oldHistory, [snapshot.child("timeStamp").val()]: snapshot.child("state").val()}));
+
+    console.log("setting up onChildAdded hook");
+    onChildAdded(boardRef, snapshot => {
+      console.log(" " + snapshot.child("timeStamp").val() + " " + initialLastKey);
+      if (parseInt(snapshot.child("timeStamp").val()) >= parseInt(initialLastKey)) {
+        console.log("child added");
+        const rawState = snapshot.child("state").val();
+        const state = rawState === 5 ? 2 : rawState === 6 ? 4 : rawState;
+        setHistory(oldHistory => ({...oldHistory, [snapshot.child("timeStamp").val()]: state}));
+      }
     });
   }, [initialLastKey]);
 
