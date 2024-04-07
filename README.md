@@ -9,6 +9,14 @@ the other's state.
 ---
 
 # Libraries used for ESP32 and their versions 
+- [Firebase ESP Client](https://github.com/mobizt/Firebase-ESP-Client) - 4.4.14
+- [FirebaseJson](https://github.com/mobizt/FirebaseJson) - 3.0.7
+- [WifiManger](https://github.com/tzapu/WiFiManager) - 2.0.17
+- [NTPClient](https://github.com/arduino-libraries/NTPClient) - 3.2.1
+- [Adafruit MPU6050](https://github.com/adafruit/Adafruit_MPU6050) - 2.2.6
+- [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306) - 2.5.9
+- [Adafruit Sensor](https://github.com/adafruit/Adafruit_Sensor) - 1.1.14
+- [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) - 1.11.9
 - 
 
 # Hardware used
