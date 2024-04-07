@@ -47,3 +47,7 @@ the other's state.
 
 # Connection Diagmram
 ![Connection Diagram](https://github.com/mtshrmn/mirrored-object/assets/18540571/a04810b1-9e94-4f00-9c12-ebd87cbcae58)
+
+# Poster
+![Mirrored object GROUP 9 - IOT poster](https://github.com/mtshrmn/mirrored-object/assets/18540571/e0ef05ea-efc2-46cd-87eb-2f4b576775ea)
+
