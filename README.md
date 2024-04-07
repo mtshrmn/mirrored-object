@@ -8,6 +8,26 @@ the other's state.
 
 ---
 
+# Folder Structure of the Repository
+```
+
+├── PARAMETERS.md - hard coded parameters of the project.
+├── README.md - this file.
+├── src
+│   ├── app
+│   │   ├── assets - all the images for the application
+│   │   ├── components - custom react native components
+│   └── hardware
+│       ├── final
+│       │   ├── cube_a - code for cube a (final submission)
+│       │   └── cube_b - code for cube b (final submission)
+│       └── poc - code for PoC (old code)
+└── unittests
+    ├── hardware - hardware unittests
+    └── software - software unittests
+
+```
+
 # Libraries used for ESP32 and their versions 
 - [Firebase ESP Client](https://github.com/mobizt/Firebase-ESP-Client) - 4.4.14
 - [FirebaseJson](https://github.com/mobizt/FirebaseJson) - 3.0.7
@@ -17,7 +37,6 @@ the other's state.
 - [Adafruit SSD1306](https://github.com/adafruit/Adafruit_SSD1306) - 2.5.9
 - [Adafruit Sensor](https://github.com/adafruit/Adafruit_Sensor) - 1.1.14
 - [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) - 1.11.9
-- 
 
 # Hardware used
 - 2 $\times$ ESP32
