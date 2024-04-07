@@ -11,20 +11,21 @@ the other's state.
 # Folder Structure of the Repository
 ```
 
+├── docs - documentation and instructions.
 ├── PARAMETERS.md - hard coded parameters of the project.
 ├── README.md - this file.
 ├── src
-│   ├── app
-│   │   ├── assets - all the images for the application
-│   │   ├── components - custom react native components
+│   ├── app - source code for react native application.
+│   │   ├── assets - all the images for the application.
+│   │   ├── components - custom react native components.
 │   └── hardware
 │       ├── final
-│       │   ├── cube_a - code for cube a (final submission)
-│       │   └── cube_b - code for cube b (final submission)
-│       └── poc - code for PoC (old code)
+│       │   ├── cube_a - code for cube a (final submission).
+│       │   └── cube_b - code for cube b (final submission).
+│       └── poc - code for PoC (old code).
 └── unittests
-    ├── hardware - hardware unittests
-    └── software - software unittests
+    ├── hardware - hardware unit tests.
+    └── software - software unit tests.
 
 ```
 

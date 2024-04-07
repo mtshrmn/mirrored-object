@@ -18,8 +18,6 @@ OrientationManager orientationManager;
 
 #define API_KEY "AIzaSyABl_UJRO3JkxAhHKfxys7xxDQHMSz4exg"
 #define DB_URL "https://mirrored-object-default-rtdb.europe-west1.firebasedatabase.app"  // database url
-#define SSID "Marina's phone" //wifi username
-#define PSK "marina30"        //wifi password
 #define NTP_SERVER "pool.ntp.org"
 
 #define PIN_RED 32
