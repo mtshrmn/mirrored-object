@@ -45,5 +45,5 @@ the other's state.
 - 2 $\times$ SD1306
 - 2 $\times$ KY016
 
-
----![Connection Diagram](https://github.com/mtshrmn/mirrored-object/assets/18540571/a04810b1-9e94-4f00-9c12-ebd87cbcae58)
+# Connection Diagmram
+![Connection Diagram](https://github.com/mtshrmn/mirrored-object/assets/18540571/a04810b1-9e94-4f00-9c12-ebd87cbcae58)
