@@ -12,10 +12,10 @@ the other's state.
 - 
 
 # Hardware used
-- 2$\times$ ESP32
-- 2$\times$ MPU6050
-- 2$\times$ SD1306
-- 2$\times$ KY016
+- 2 $\times$ ESP32
+- 2 $\times$ MPU6050
+- 2 $\times$ SD1306
+- 2 $\times$ KY016
 
 
 ---
