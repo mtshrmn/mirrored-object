@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { useLastConnected, useCurrentState } from "../firebase.js";
+import { useLastConnected, useConnectedDelta, useCurrentState } from "../firebase.js";
 
 const screenWidth = Dimensions.get('window').width;
 const iconFlexRatio = 0.15; // Adjust the flex ratio for icons
@@ -26,8 +26,8 @@ const Header = ({
     return now - lastConnectedTimestamp; // Delta in seconds
   };
 
-  const deltaA = calculateDelta(lastConnectedA);
-  const deltaB = calculateDelta(lastConnectedB);
+  const deltaA = useConnectedDelta("cube_a");
+  const deltaB = useConnectedDelta("cube_b");
 
   // Determine the color for each icon based on the delta
   const statusA = connectionDeltaToColor(deltaA);
